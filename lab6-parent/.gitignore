@@ -1,0 +1,17 @@
+/target/
+/lab6-client/target/
+/lab6-commands/target/
+/lab6-server/target/
+/.settings/
+/lab6-client/.settings/
+/lab6-commands/.settings/
+/lab6-server/.settings/
+.classpath
+/lab6-client/.classpath
+/lab6-commands/.classpath
+/lab6-server/.classpath
+.project
+/lab6-client/.project
+/lab6-commands/.project
+/lab6-server/.project
+/ClassDiagram.ucls
