@@ -70,6 +70,7 @@ public class Server {
 
 							if (command[0].equals("exit")) {
 								internalEnv.getCommandsMap().get(command[0]).execute(ExecutionType.INTERNAL_CLIENT, internalEnv, Arrays.copyOfRange(command, 1, command.length), System.in, System.out);
+								internalEnv.getCommandsMap().get("save").execute(ExecutionType.INTERNAL_CLIENT, internalEnv, new Object[] { args[0] }, System.in, System.out);
 								taskExecutor.shutdownNow();
 								System.exit(0);
 							}
