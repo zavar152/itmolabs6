@@ -11,27 +11,27 @@ import itmo.labs.zavar.exception.CommandArgumentException;
 import itmo.labs.zavar.exception.CommandException;
 
 /**
- * Ouputs history of commands.
+ * Terminates the program (without saving it to a file). Doesn't require any
+ * arguments.
  * 
  * @author Zavar
- *
+ * @version 1.1
  */
-public class HistoryCommand extends Command {
+public class ExitCommand extends Command {
 
-	private HistoryCommand() {
-		super("history", "count");
+	private ExitCommand() {
+		super("exit");
 	}
 
 	@Override
-	public void execute(ExecutionType type, Environment env, Object[] args, InputStream inStream, OutputStream outStream) throws CommandException {
-		if (args instanceof String[] && args.length > 0 && type.equals(ExecutionType.CLIENT)) {
+	public void execute(ExecutionType type, Environment env, Object[] args, InputStream inStream, OutputStream outStream)
+			throws CommandException {
+		if (args.length > 0) {
 			throw new CommandArgumentException("This command doesn't require any arguments!\n" + getUsage());
 		} else {
-			super.args = args;
-			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT)) {
-				((PrintStream) outStream).println("-------");
-				env.getHistory((String) args[0]).getGlobalHistory().stream().forEachOrdered(((PrintStream) outStream)::println);
-			}
+			env.getCommandsMap().get("save").execute(type, env, args, inStream, outStream);
+			((PrintStream) outStream).println("Program is closing...");
+			System.exit(0);
 		}
 	}
 
@@ -41,12 +41,12 @@ public class HistoryCommand extends Command {
 	 * @param commandsMap Commands' map.
 	 */
 	public static void register(HashMap<String, Command> commandsMap) {
-		HistoryCommand command = new HistoryCommand();
+		ExitCommand command = new ExitCommand();
 		commandsMap.put(command.getName(), command);
 	}
 
 	@Override
 	public String getHelp() {
-		return "This command shows history of commands!";
+		return "This command stops the application!";
 	}
 }

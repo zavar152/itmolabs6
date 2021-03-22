@@ -1,5 +1,7 @@
 package itmo.labs.zavar.studygroup;
 
+import java.io.Serializable;
+
 /**
  * Class for creation of coordinates. Contains getters and setters for important
  * fields.
@@ -7,8 +9,10 @@ package itmo.labs.zavar.studygroup;
  * @author Zavar
  * @version 1.1
  */
-public class Coordinates {
+public class Coordinates implements Serializable {
 
+	private static final long serialVersionUID = -6585455633503207803L;
+	
 	private Double x;
 	private Float y;
 

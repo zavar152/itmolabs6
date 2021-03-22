@@ -56,34 +56,32 @@ public class AddIfMaxCommand extends Command {
 	}
 
 	@Override
-	public void execute(Environment env, Object[] args, InputStream inStream, OutputStream outStream)
+	public void execute(ExecutionType type, Environment env, Object[] args, InputStream inStream, OutputStream outStream)
 			throws CommandException {
-		if (args.length > 0) {
+		if (args instanceof String[] && args.length > 0 && type.equals(ExecutionType.CLIENT)) {
 			throw new CommandArgumentException("This command doesn't require any arguments!\n" + getUsage());
 		} else {
-			if (env.getCollection().isEmpty()) {
-				throw new CommandRunningException("Collection is empty!");
-			}
 			PrintStream pr = new PrintStream(outStream);
 			Scanner in = new Scanner(inStream);
-			long id;
+			long id = 1;
+			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT)) {
+				if (env.getCollection().isEmpty()) {
+					throw new CommandRunningException("Collection is empty!");
+				}
 
-			long maxId;
-			try {
-				maxId = env.getCollection().stream().max(Comparator.comparingLong(StudyGroup::getId))
-						.orElseThrow(NoSuchElementException::new).getId();
-				id = maxId + 1;
-			} catch (NoSuchElementException e) {
-				id = 1;
-			} catch (Exception e) {
-				throw new CommandRunningException("Unexcepted error! " + e.getMessage());
+				long maxId;
+				try {
+					maxId = env.getCollection().stream().max(Comparator.comparingLong(StudyGroup::getId))
+							.orElseThrow(NoSuchElementException::new).getId();
+					id = maxId + 1;
+				} catch (NoSuchElementException e) {
+					id = 1;
+				} catch (Exception e) {
+					throw new CommandRunningException("Unexcepted error! " + e.getMessage());
+				}
 			}
-
 			try {
-				pr.println("Enter name:");
-				String name = InputParser.parseString(outStream, in, "Name", Integer.MIN_VALUE, Integer.MAX_VALUE,
-						false, false);
-
+				String name = "";
 				Coordinates coordinates = null;
 				Long studentsCount = null;
 				int expelledStudents = 0;
@@ -91,81 +89,107 @@ public class AddIfMaxCommand extends Command {
 				FormOfEducation formOfEducation = null;
 				Person groupAdmin = null;
 
-				pr.println("Enter X coordinate:");
-				Double x = InputParser.parseDouble(outStream, in, "X", -573.0d, Double.MAX_VALUE, false, false);
-				pr.println("Enter Y coordinate:");
-				Float y = InputParser.parseFloat(outStream, in, "Y", Float.MIN_VALUE, Float.MAX_VALUE, false, false);
-				coordinates = new Coordinates(x, y);
-
-				pr.println("Enter students count:");
-				studentsCount = InputParser.parseLong(outStream, in, "Students count", 0l, Long.MAX_VALUE, false,
-						false);
-
-				pr.println("Enter expelled students count:");
-				expelledStudents = InputParser.parseInteger(outStream, in, "Expelled students", 0, Integer.MAX_VALUE,
-						false, true);
-
-				pr.println("Enter transferred students count:");
-				transferredStudents = InputParser.parseLong(outStream, in, "Transferred students", 0l, Long.MAX_VALUE,
-						false, true);
-
-				pr.println("Enter form of education, values - " + Arrays.toString(FormOfEducation.values()));
-				formOfEducation = FormOfEducation
-						.valueOf(InputParser.parseEnum(outStream, in, FormOfEducation.class, false));
-
-				pr.println("Does the group have an admin? [YES]");
-				String answ = InputParser.parseString(outStream, in, "Answer", Integer.MIN_VALUE, Integer.MAX_VALUE,
-						false, true);
-
-				if (answ.equals("YES")) {
+				String admName = "";
+				String passportID = "";
+				Color eyeColor = null;
+				Color hairColor = null;
+				Country nationality = null;
+				Location location;
+				String nameStr = "";
+				float x1 = 0f;
+				Float y1 = 0f;
+				Long z = 0l;
+				
+				if (type.equals(ExecutionType.CLIENT) | type.equals(ExecutionType.SCRIPT)) {
 					pr.println("Enter name:");
-					String admName = InputParser.parseString(outStream, in, "Name", Integer.MIN_VALUE,
-							Integer.MAX_VALUE, false, false);
+					name = InputParser.parseString(outStream, in, "Name", Integer.MIN_VALUE, Integer.MAX_VALUE,
+							false, false);
 
-					pr.println("Enter passport ID:");
-					String passportID = InputParser.parseString(outStream, in, "Passport ID", Integer.MIN_VALUE,
-							Integer.MAX_VALUE, true, false);
+					pr.println("Enter X coordinate:");
+					Double x = InputParser.parseDouble(outStream, in, "X", -573.0d, Double.MAX_VALUE, false, false);
+					pr.println("Enter Y coordinate:");
+					Float y = InputParser.parseFloat(outStream, in, "Y", Float.MIN_VALUE, Float.MAX_VALUE, false,
+							false);
+					coordinates = new Coordinates(x, y);
 
-					pr.println("Enter eye color, values - " + Arrays.toString(Color.values()));
-					Color eyeColor = Color.valueOf(InputParser.parseEnum(outStream, in, Color.class, false));
-
-					pr.println("Enter hair color, values - " + Arrays.toString(Color.values()));
-					Color hairColor = Color.valueOf(InputParser.parseEnum(outStream, in, Color.class, false));
-
-					pr.println("Enter country, values - " + Arrays.toString(Country.values()));
-					String an = InputParser.parseEnum(outStream, in, Country.class, true);
-					Country nationality = null;
-					if (an != null) {
-						nationality = Country.valueOf(an);
-					}
-
-					Location location;
-					pr.println("Enter name location:");
-					String nameStr = InputParser.parseString(outStream, in, "Location name", Integer.MIN_VALUE, 348,
-							true, false);
-
-					pr.println("Enter X:");
-					float x1 = InputParser.parseFloat(outStream, in, "X", Float.MIN_VALUE, Float.MAX_VALUE, false,
-							true);
-
-					pr.println("Enter Y:");
-					Float y1 = InputParser.parseFloat(outStream, in, "Y", Float.MIN_VALUE, Float.MAX_VALUE, false,
+					pr.println("Enter students count:");
+					studentsCount = InputParser.parseLong(outStream, in, "Students count", 0l, Long.MAX_VALUE, false,
 							false);
 
-					pr.println("Enter Z:");
-					Long z = InputParser.parseLong(outStream, in, "Z", Long.MIN_VALUE, Long.MAX_VALUE, false, false);
+					pr.println("Enter expelled students count:");
+					expelledStudents = InputParser.parseInteger(outStream, in, "Expelled students", 0,
+							Integer.MAX_VALUE, false, true);
 
+					pr.println("Enter transferred students count:");
+					transferredStudents = InputParser.parseLong(outStream, in, "Transferred students", 0l,
+							Long.MAX_VALUE, false, true);
+
+					pr.println("Enter form of education, values - " + Arrays.toString(FormOfEducation.values()));
+					formOfEducation = FormOfEducation
+							.valueOf(InputParser.parseEnum(outStream, in, FormOfEducation.class, false));
+
+					pr.println("Does the group have an admin? [YES]");
+					String answ = InputParser.parseString(outStream, in, "Answer", Integer.MIN_VALUE, Integer.MAX_VALUE,
+							false, true);
+					
+					if (answ.equals("YES")) {
+						pr.println("Enter name:");
+						admName = InputParser.parseString(outStream, in, "Name", Integer.MIN_VALUE,
+								Integer.MAX_VALUE, false, false);
+
+						pr.println("Enter passport ID:");
+						passportID = InputParser.parseString(outStream, in, "Passport ID", Integer.MIN_VALUE,
+								Integer.MAX_VALUE, true, false);
+
+						pr.println("Enter eye color, values - " + Arrays.toString(Color.values()));
+						eyeColor = Color.valueOf(InputParser.parseEnum(outStream, in, Color.class, false));
+
+						pr.println("Enter hair color, values - " + Arrays.toString(Color.values()));
+						hairColor = Color.valueOf(InputParser.parseEnum(outStream, in, Color.class, false));
+
+						pr.println("Enter country, values - " + Arrays.toString(Country.values()));
+						String an = InputParser.parseEnum(outStream, in, Country.class, true);
+						if (an != null) {
+							nationality = Country.valueOf(an);
+						}
+
+						pr.println("Enter name location:");
+						nameStr = InputParser.parseString(outStream, in, "Location name", Integer.MIN_VALUE, 348,
+								true, false);
+
+						pr.println("Enter X:");
+						x1 = InputParser.parseFloat(outStream, in, "X", Float.MIN_VALUE, Float.MAX_VALUE, false,
+								true);
+
+						pr.println("Enter Y:");
+						y1 = InputParser.parseFloat(outStream, in, "Y", Float.MIN_VALUE, Float.MAX_VALUE, false,
+								false);
+
+						pr.println("Enter Z:");
+						z = InputParser.parseLong(outStream, in, "Z", Long.MIN_VALUE, Long.MAX_VALUE, false,
+								false);
+					}
 					location = new Location(x1, y1, z, nameStr);
 					groupAdmin = new Person(admName, passportID, eyeColor, hairColor, nationality, location);
 				}
-				StudyGroup temp1 = new StudyGroup(id, name, coordinates, studentsCount, expelledStudents,
-						transferredStudents, formOfEducation, groupAdmin);
-				StudyGroup temp2 = Collections.max(env.getCollection());
-				if (temp1.compareTo(temp2) > 0) {
-					env.getCollection().push(temp1);
-					pr.println("Element added!");
-				} else {
-					pr.println("Element less than max element in collection!");
+				
+				StudyGroup temp1 = null;
+				if (type.equals(ExecutionType.CLIENT) | type.equals(ExecutionType.SCRIPT)) {
+					temp1 = new StudyGroup(id, name, coordinates, studentsCount, expelledStudents, transferredStudents, formOfEducation, groupAdmin);
+					super.args = new Object[] {temp1};
+				} else if (type.equals(ExecutionType.SERVER)) {
+					temp1 = (StudyGroup) args[0];
+					temp1.setId(id);
+				}
+				
+				if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT)) {
+					StudyGroup temp2 = Collections.max(env.getCollection());
+					if (temp1.compareTo(temp2) > 0) {
+						env.getCollection().push(temp1);
+						pr.println("Element added!");
+					} else {
+						pr.println("Element less than max element in collection!");
+					}
 				}
 			} catch (InputMismatchException e) {
 				throw new CommandRunningException("Input closed!");

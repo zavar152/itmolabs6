@@ -8,7 +8,7 @@
 		<version>0.0.1</version>
 	</parent>
 	<artifactId>lab6-server</artifactId>
-	<version>0.0.5</version>
+	<version>0.1.1</version>
 	<name>lab6-server</name>
 
 	<build>
@@ -60,9 +60,15 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.12.0</version>
+		</dependency>
+
+		<dependency>
 			<groupId>itmo.zavar</groupId>
 			<artifactId>lab6-commands</artifactId>
-			<version>0.2.0</version>
+			<version>0.2.5</version>
 		</dependency>
 	</dependencies>
 

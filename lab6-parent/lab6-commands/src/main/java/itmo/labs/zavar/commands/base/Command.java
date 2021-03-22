@@ -14,8 +14,10 @@ import itmo.labs.zavar.exception.CommandException;
  * 
  */
 public abstract class Command {
+	
 	private String name;
-	private String[] args;
+	private String[] requiredArgs;
+	protected Object[] args;
 
 	/**
 	 * Creates a new command. In inheritors it recommended to make a <b>private
@@ -50,9 +52,9 @@ public abstract class Command {
 	 * @param name command's name
 	 * @param args command's arguments (uses for showing help)
 	 */
-	public Command(String name, String... args) {
+	public Command(String name, String... requiredArgs) {
 		this.name = name;
-		this.args = args;
+		this.requiredArgs = requiredArgs;
 	}
 
 	/**
@@ -71,9 +73,17 @@ public abstract class Command {
 	 * 
 	 * @see Environment
 	 */
-	public abstract void execute(Environment env, Object[] args, InputStream inStream, OutputStream outStream)
+	public abstract void execute(ExecutionType type, Environment env, Object[] args, InputStream inStream, OutputStream outStream)
 			throws CommandException;
 
+	public final CommandPackage getPackage() {
+		return new CommandPackage(getName(), args);
+	}
+	
+	public final Object[] getArgs() {
+		return args;
+	}
+	
 	/**
 	 * Returns string with helpful information about command.
 	 * 
@@ -91,7 +101,7 @@ public abstract class Command {
 	 * @see #getArgsAsString()
 	 */
 	public final String getUsage() {
-		return "Usage: " + name + " " + getArgsAsString();
+		return "Usage: " + name + " " + getRequiredArgsAsString();
 	}
 
 	/**
@@ -99,8 +109,8 @@ public abstract class Command {
 	 * 
 	 * @return {@link String}
 	 */
-	public final String[] getArgs() {
-		return args;
+	public final String[] getRequiredArgs() {
+		return requiredArgs;
 	}
 
 	/**
@@ -108,9 +118,9 @@ public abstract class Command {
 	 * 
 	 * @return {@link String}
 	 */
-	public final String getArgsAsString() {
-		if (args.length > 0) {
-			return Arrays.toString(args).replace(", ", "] [");
+	public final String getRequiredArgsAsString() {
+		if (requiredArgs.length > 0) {
+			return Arrays.toString(requiredArgs).replace(", ", "] [");
 		} else {
 			return "";
 		}
@@ -144,5 +154,13 @@ public abstract class Command {
 	 */
 	public String[] getInputOrder(int type) {
 		return new String[] {};
+	}
+	
+	public static enum ExecutionType
+	{
+		CLIENT,
+		SERVER,
+		SCRIPT,
+		INTERNAL_CLIENT
 	}
 }

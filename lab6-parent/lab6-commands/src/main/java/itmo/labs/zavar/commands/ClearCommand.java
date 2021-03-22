@@ -23,13 +23,15 @@ public class ClearCommand extends Command {
 	}
 
 	@Override
-	public void execute(Environment env, Object[] args, InputStream inStream, OutputStream outStream)
-			throws CommandException {
-		if (args.length > 0) {
+	public void execute(ExecutionType type, Environment env, Object[] args, InputStream inStream, OutputStream outStream) throws CommandException {
+		if (args instanceof String[] && args.length > 0 && type.equals(ExecutionType.CLIENT)) {
 			throw new CommandArgumentException("This command doesn't require any arguments!\n" + getUsage());
 		} else {
-			env.getCollection().clear();
-			((PrintStream) outStream).println("Collection cleared");
+			super.args = args;
+			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT)) {
+				env.getCollection().clear();
+				((PrintStream) outStream).println("Collection cleared");
+			}
 		}
 	}
 

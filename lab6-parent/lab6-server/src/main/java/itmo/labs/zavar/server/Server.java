@@ -1,4 +1,4 @@
-package itmo.labs.zavar;
+package itmo.labs.zavar.server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

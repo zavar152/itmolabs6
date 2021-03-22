@@ -1,5 +1,7 @@
 package itmo.labs.zavar.studygroup;
 
+import java.io.Serializable;
+
 /**
  * Class for creation of persons. Contains getters and setters for important
  * fields.
@@ -7,7 +9,10 @@ package itmo.labs.zavar.studygroup;
  * @author Zavar
  * @version 1.2
  */
-public class Person {
+public class Person implements Serializable {
+
+	private static final long serialVersionUID = 7895807501343981770L;
+	
 	private String name;
 	private String passportID;
 	private Color eyeColor;

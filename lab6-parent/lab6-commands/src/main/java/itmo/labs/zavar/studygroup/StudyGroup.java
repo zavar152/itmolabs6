@@ -1,5 +1,6 @@
 package itmo.labs.zavar.studygroup;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -13,7 +14,10 @@ import java.util.Date;
  * @author Zavar
  * @version 1.6
  */
-public class StudyGroup implements Comparable<StudyGroup> {
+public class StudyGroup implements Comparable<StudyGroup>, Serializable {
+	
+	private static final long serialVersionUID = -3915109296748159784L;
+	
 	private long id;
 	private String name;
 	private Coordinates coordinates;

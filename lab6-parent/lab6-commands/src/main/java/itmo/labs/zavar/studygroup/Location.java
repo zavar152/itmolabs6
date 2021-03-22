@@ -1,5 +1,7 @@
 package itmo.labs.zavar.studygroup;
 
+import java.io.Serializable;
+
 /**
  * Class for creation of locations. Contains getters and setters for important
  * fields.
@@ -7,7 +9,10 @@ package itmo.labs.zavar.studygroup;
  * @author Zavar
  * @version 1.1
  */
-public class Location {
+public class Location implements Serializable {
+
+	private static final long serialVersionUID = 266310202943929223L;
+	
 	private float x;
 	private Float y;
 	private Long z;

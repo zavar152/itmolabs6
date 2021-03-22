@@ -25,11 +25,11 @@ public class CountGreaterThanTSCommand extends Command {
 	}
 
 	@Override
-	public void execute(Environment env, Object[] args, InputStream inStream, OutputStream outStream)
-			throws CommandException {
-		if (args.length != 1) {
+	public void execute(ExecutionType type, Environment env, Object[] args, InputStream inStream, OutputStream outStream) throws CommandException {
+		if (args instanceof String[] && args.length != 1 && type.equals(ExecutionType.CLIENT)) {
 			throw new CommandArgumentException("This command requires one argument!\n" + getUsage());
 		} else {
+			super.args = args;
 			long tr;
 			try {
 				tr = Long.parseLong((String) args[0]);
@@ -39,12 +39,14 @@ public class CountGreaterThanTSCommand extends Command {
 				throw new CommandRunningException("Unexcepted error! " + e.getMessage());
 			}
 
-			if (env.getCollection().isEmpty()) {
-				throw new CommandRunningException("Collection is empty!");
-			}
+			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT)) {
+				if (env.getCollection().isEmpty()) {
+					throw new CommandRunningException("Collection is empty!");
+				}
 
-			long count = env.getCollection().stream().filter((p) -> p.getTransferredStudents() > tr).count();
-			((PrintStream) outStream).println("Count of elements: " + count);
+				long count = env.getCollection().stream().filter((p) -> p.getTransferredStudents() > tr).count();
+				((PrintStream) outStream).println("Count of elements: " + count);
+			}
 		}
 	}
 

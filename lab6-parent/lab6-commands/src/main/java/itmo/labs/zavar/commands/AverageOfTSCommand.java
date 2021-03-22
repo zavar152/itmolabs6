@@ -25,16 +25,19 @@ public class AverageOfTSCommand extends Command {
 	}
 
 	@Override
-	public void execute(Environment env, Object[] args, InputStream inStream, OutputStream outStream)
+	public void execute(ExecutionType type, Environment env, Object[] args, InputStream inStream, OutputStream outStream)
 			throws CommandException {
-		if (args.length > 0) {
+		if (args instanceof String[] && args.length > 0 && type.equals(ExecutionType.CLIENT)) {
 			throw new CommandArgumentException("This command doesn't require any arguments!\n" + getUsage());
 		} else {
-			if (env.getCollection().isEmpty()) {
-				throw new CommandRunningException("Collection is empty!");
+			super.args = args;
+			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT)) {
+				if (env.getCollection().isEmpty()) {
+					throw new CommandRunningException("Collection is empty!");
+				}
+				double a = env.getCollection().stream().mapToLong((l) -> l.getTransferredStudents()).average().orElse(0);
+				((PrintStream) outStream).println("The average value of transferred students is " + a);
 			}
-			double a = env.getCollection().stream().mapToLong((l) -> l.getTransferredStudents()).average().orElse(0);
-			((PrintStream) outStream).println("The average value of transferred students is " + a);
 		}
 	}
 

@@ -25,15 +25,17 @@ public class InfoCommand extends Command {
 	}
 
 	@Override
-	public void execute(Environment env, Object[] args, InputStream inStream, OutputStream outStream)
-			throws CommandException {
-		if (args.length > 0) {
+	public void execute(ExecutionType type, Environment env, Object[] args, InputStream inStream, OutputStream outStream) throws CommandException {
+		if (args instanceof String[] && args.length > 0 && type.equals(ExecutionType.CLIENT)) {
 			throw new CommandArgumentException("This command doesn't require any arguments!\n" + getUsage());
 		} else {
-			PrintStream pr = ((PrintStream) outStream);
-			pr.println("Type: " + env.getCollection().getClass().getName());
-			pr.println("Creation date: " + env.getCreationTime());
-			pr.println("Count of elements: " + env.getCollection().size());
+			super.args = args;
+			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT)) {
+				PrintStream pr = ((PrintStream) outStream);
+				pr.println("Type: " + env.getCollection().getClass().getName());
+				pr.println("Creation date: " + env.getCreationTime());
+				pr.println("Count of elements: " + env.getCollection().size());
+			}
 		}
 	}
 

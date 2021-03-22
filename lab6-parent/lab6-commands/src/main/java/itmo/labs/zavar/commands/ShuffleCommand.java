@@ -24,19 +24,21 @@ public class ShuffleCommand extends Command {
 	private ShuffleCommand() {
 		super("shuffle");
 	}
-
+	
 	@Override
-	public void execute(Environment env, Object[] args, InputStream inStream, OutputStream outStream)
-			throws CommandException {
-		if (args.length > 0) {
+	public void execute(ExecutionType type, Environment env, Object[] args, InputStream inStream, OutputStream outStream) throws CommandException {
+		if (args instanceof String[] && args.length > 0 && type.equals(ExecutionType.CLIENT)) {
 			throw new CommandArgumentException("This command doesn't require any arguments!\n" + getUsage());
 		} else {
-			if (env.getCollection().isEmpty()) {
-				throw new CommandRunningException("Collection is empty!");
-			}
+			super.args = args;
+			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT)) {
+				if (env.getCollection().isEmpty()) {
+					throw new CommandRunningException("Collection is empty!");
+				}
 
-			Collections.shuffle(env.getCollection());
-			((PrintStream) outStream).println("Collection mixed up!");
+				Collections.shuffle(env.getCollection());
+				((PrintStream) outStream).println("Collection mixed up!");
+			}
 		}
 	}
 

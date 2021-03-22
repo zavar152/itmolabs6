@@ -40,20 +40,20 @@ public class ExecuteScriptCommand extends Command {
 	}
 
 	@Override
-	public void execute(Environment env, Object[] args, InputStream inStream, OutputStream outStream)
+	public void execute(ExecutionType type, Environment env, Object[] args, InputStream inStream, OutputStream outStream)
 			throws CommandException {
-		if (args.length > 1 || args.length < 1) {
+		if ((args.length > 1 || args.length < 1) && type.equals(ExecutionType.CLIENT)) {
 			throw new CommandArgumentException("This command requires one argument!\n" + getUsage());
 		} else {
+			super.args = args;
 			if (!new File((String) args[0]).exists()) {
 				throw new CommandRunningException("File not found!");
 			}
 
-			if ((env.getHistory().getTempHistory().size() > 1) && (env.getHistory().getTempHistory()
-					.contains(getName() + " " + Arrays.toString(args).replace("[", "").replace("]", "")))) {
+			if ((env.getHistory((String) args[0]).getTempHistory().size() > 1) && (env.getHistory((String) args[0]).getTempHistory().contains(getName() + " " + Arrays.toString(args).replace("[", "").replace("]", "")))) {
 				throw new CommandRecursionException();
 			}
-			env.getHistory().addToTemp((getName() + " " + Arrays.toString(args).replace("[", "").replace("]", "")));
+			env.getHistory((String) args[0]).addToTemp((getName() + " " + Arrays.toString(args).replace("[", "").replace("]", "")));
 
 			List<String> lines = null;
 			try {
@@ -92,13 +92,11 @@ public class ExecuteScriptCommand extends Command {
 							for (int j = 0; j < order.length; j++) {
 								to = to + obj.get(order[j]) + "\n";
 							}
-							env.getHistory().addToGlobal(line);
-							env.getCommandsMap().get(command[0]).execute(env, Arrays.copyOfRange(command, 1, jsonPos),
-									new ReaderInputStream(new StringReader(to), StandardCharsets.UTF_8), outStream);
+							env.getHistory((String) args[0]).addToGlobal(line);
+							env.getCommandsMap().get(command[0]).execute(ExecutionType.SCRIPT, env, Arrays.copyOfRange(command, 1, jsonPos), new ReaderInputStream(new StringReader(to), StandardCharsets.UTF_8), outStream);
 						} else {
-							env.getHistory().addToGlobal(line);
-							env.getCommandsMap().get(command[0]).execute(env,
-									Arrays.copyOfRange(command, 1, command.length), inStream, outStream);
+							env.getHistory((String) args[0]).addToGlobal(line);
+							env.getCommandsMap().get(command[0]).execute(ExecutionType.SCRIPT, env, Arrays.copyOfRange(command, 1, command.length), inStream, outStream);
 						}
 					} catch (CommandException e) {
 						throw new CommandException(e.getMessage());

@@ -24,11 +24,12 @@ public class RemoveByIDCommand extends Command {
 	}
 
 	@Override
-	public void execute(Environment env, Object[] args, InputStream inStream, OutputStream outStream)
+	public void execute(ExecutionType type, Environment env, Object[] args, InputStream inStream, OutputStream outStream)
 			throws CommandException {
-		if (args.length != 1) {
+		if (args instanceof String[] && args.length != 1 && type.equals(ExecutionType.CLIENT)) {
 			throw new CommandArgumentException("This command requires id of element only!\n" + getUsage());
 		} else {
+			super.args = args;
 			int id;
 			try {
 				id = Integer.parseInt((String) args[0]);
@@ -38,12 +39,14 @@ public class RemoveByIDCommand extends Command {
 				throw new CommandRunningException("Unexcepted error! " + e.getMessage());
 			}
 
-			if (env.getCollection().isEmpty()) {
-				throw new CommandRunningException("Collection is empty!");
-			}
+			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT)) {
+				if (env.getCollection().isEmpty()) {
+					throw new CommandRunningException("Collection is empty!");
+				}
 
-			env.getCollection().removeIf(e -> id == e.getId());
-			((PrintStream) outStream).println("Element deleted!");
+				env.getCollection().removeIf(e -> id == e.getId());
+				((PrintStream) outStream).println("Element deleted!");
+			}
 		}
 	}
 

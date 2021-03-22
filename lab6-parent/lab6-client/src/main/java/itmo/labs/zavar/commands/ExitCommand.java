@@ -24,7 +24,7 @@ public class ExitCommand extends Command {
 	}
 
 	@Override
-	public void execute(Environment env, Object[] args, InputStream inStream, OutputStream outStream)
+	public void execute(ExecutionType type, Environment env, Object[] args, InputStream inStream, OutputStream outStream)
 			throws CommandException {
 		if (args.length > 0) {
 			throw new CommandArgumentException("This command doesn't require any arguments!\n" + getUsage());
