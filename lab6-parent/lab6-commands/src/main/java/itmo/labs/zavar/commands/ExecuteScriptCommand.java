@@ -50,10 +50,10 @@ public class ExecuteScriptCommand extends Command {
 				throw new CommandRunningException("File not found!");
 			}
 
-			if ((env.getHistory((String) args[0]).getTempHistory().size() > 1) && (env.getHistory((String) args[0]).getTempHistory().contains(getName() + " " + Arrays.toString(args).replace("[", "").replace("]", "")))) {
+			if ((env.getHistory().getTempHistory().size() > 1) && (env.getHistory().getTempHistory().contains(getName() + " " + Arrays.toString(args).replace("[", "").replace("]", "")))) {
 				throw new CommandRecursionException();
 			}
-			env.getHistory((String) args[0]).addToTemp((getName() + " " + Arrays.toString(args).replace("[", "").replace("]", "")));
+			env.getHistory().addToTemp((getName() + " " + Arrays.toString(args).replace("[", "").replace("]", "")));
 
 			List<String> lines = null;
 			try {
@@ -92,10 +92,10 @@ public class ExecuteScriptCommand extends Command {
 							for (int j = 0; j < order.length; j++) {
 								to = to + obj.get(order[j]) + "\n";
 							}
-							env.getHistory((String) args[0]).addToGlobal(line);
+							env.getHistory().addToGlobal(line);
 							env.getCommandsMap().get(command[0]).execute(ExecutionType.SCRIPT, env, Arrays.copyOfRange(command, 1, jsonPos), new ReaderInputStream(new StringReader(to), StandardCharsets.UTF_8), outStream);
 						} else {
-							env.getHistory((String) args[0]).addToGlobal(line);
+							env.getHistory().addToGlobal(line);
 							env.getCommandsMap().get(command[0]).execute(ExecutionType.SCRIPT, env, Arrays.copyOfRange(command, 1, command.length), inStream, outStream);
 						}
 					} catch (CommandException e) {

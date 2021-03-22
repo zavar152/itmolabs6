@@ -1,4 +1,4 @@
-package itmo.labs.zavar.server;
+package itmo.labs.zavar.client;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -10,7 +10,9 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.net.ConnectException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -19,7 +21,6 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Scanner;
-import java.util.Stack;
 
 import itmo.labs.zavar.commands.AddCommand;
 import itmo.labs.zavar.commands.AddIfMaxCommand;
@@ -28,6 +29,7 @@ import itmo.labs.zavar.commands.AverageOfTSCommand;
 import itmo.labs.zavar.commands.ClearCommand;
 import itmo.labs.zavar.commands.CountGreaterThanTSCommand;
 import itmo.labs.zavar.commands.ExecuteScriptCommand;
+import itmo.labs.zavar.commands.ExitCommand;
 import itmo.labs.zavar.commands.HelpCommand;
 import itmo.labs.zavar.commands.HistoryCommand;
 import itmo.labs.zavar.commands.InfoCommand;
@@ -40,12 +42,10 @@ import itmo.labs.zavar.commands.base.Command;
 import itmo.labs.zavar.commands.base.Command.ExecutionType;
 import itmo.labs.zavar.commands.base.Environment;
 import itmo.labs.zavar.exception.CommandException;
-import itmo.labs.zavar.studygroup.StudyGroup;
 
-public class Connect {
+public class Client {
 	private static final int PORT = 1111;
 	
-	private static Stack<StudyGroup> stack = new Stack<StudyGroup>();
 	private static HashMap<String, Command> commandsMap = new HashMap<String, Command>();
 
 
@@ -66,10 +66,23 @@ public class Connect {
 		AddIfMaxCommand.register(commandsMap);
 		AddIfMinCommand.register(commandsMap);
 		UpdateCommand.register(commandsMap);
+		ExitCommand.register(commandsMap);
 		
 		Environment env = new Environment(commandsMap);
 		
-		Socket socket = new Socket("localhost", PORT);
+		System.out.println("Connecting to the server...");
+		boolean connected = false;
+		Socket socket = null;
+		while(!connected) {
+			try {
+				socket = new Socket("localhost", PORT);
+				connected = true;
+			} catch (ConnectException e1) {
+				Thread.sleep(2000);
+			}
+		}
+		System.out.println("Connected!");
+		
 		InputStream is = socket.getInputStream();
 		OutputStream os = socket.getOutputStream();
 		Writer writer = new OutputStreamWriter(os, StandardCharsets.US_ASCII);
@@ -86,58 +99,82 @@ public class Connect {
 				String command[] = input.split(" ");
 
 				if (command[0].equals("exit")) {
+					commandsMap.get(command[0]).execute(ExecutionType.CLIENT, env, Arrays.copyOfRange(command, 1, command.length), System.in, System.out);
 					break;
 				}
 
 				if (env.getCommandsMap().containsKey(command[0])) {
 					try {
+						env.getHistory().addToGlobal(input);
 						env.getCommandsMap().get(command[0]).execute(ExecutionType.CLIENT, env, Arrays.copyOfRange(command, 1, command.length), System.in, System.out);
+						env.getHistory().clearTempHistory();
 						ByteArrayOutputStream stream = new ByteArrayOutputStream();
 						ObjectOutputStream ser = new ObjectOutputStream(stream);
 						ser.writeObject(env.getCommandsMap().get(command[0]).getPackage());
 						String str = Base64.getMimeEncoder().encodeToString(stream.toByteArray());
-						System.out.println(str);
+						// System.out.println(str);
 						out.println(str);
 						ser.close();
 						stream.close();
 
+						buf.rewind();
+						int bytesRead = channel.read(buf);
+						// System.out.println(bytesRead);
+						buf.rewind();
+						byte[] b = new byte[bytesRead];
+						for (int i = 0; i < bytesRead; i++) {
+							b[i] = buf.get();
+							// System.out.println(i + " Byte read: " + b);
+						}
+						ByteArrayInputStream stream2 = new ByteArrayInputStream(Base64.getMimeDecoder().decode(b));
+						ObjectInputStream obj = new ObjectInputStream(stream2);
+						String per = (String) obj.readObject();
+						System.out.println(per);
+						// System.out.println("next");
+						buf.flip();
+						buf.put(new byte[buf.remaining()]);
+						buf.clear();
 					} catch (CommandException e) {
+						env.getHistory().clearTempHistory();
 						System.err.println(e.getMessage());
 					}
-
-					buf.rewind();
-					int bytesRead = channel.read(buf);
-					//System.out.println(bytesRead);
-					buf.rewind();
-					byte[] b = new byte[bytesRead];
-					for (int i = 0; i < bytesRead; i++) {
-						b[i] = buf.get();
-						//System.out.println(i + " Byte read: " + b);
-					}
-					ByteArrayInputStream stream2 = new ByteArrayInputStream(Base64.getMimeDecoder().decode(b));
-					ObjectInputStream obj = new ObjectInputStream(stream2);
-					String per = (String) obj.readObject();
-					System.out.println(per);
-					//System.out.println("next");
-					buf.flip();
-					buf.put(new byte[buf.remaining()]);
-					buf.clear();
 				} else {
 					System.err.println("Unknown command! Use help.");
 				}
+			} catch (SocketException e) {
+				System.out.println("Server is unavailable!\nWaiting for connection...");
+				connected = false;
+				
+				while(!connected) {
+					try {
+						socket = new Socket("localhost", PORT);
+						connected = true;
+					} catch (ConnectException e1) {
+						Thread.sleep(2000);
+					}
+				}
+				
+				is = socket.getInputStream();
+				os = socket.getOutputStream();
+				writer = new OutputStreamWriter(os, StandardCharsets.US_ASCII);
+				out = new PrintWriter(writer, true);
+				channel = Channels.newChannel(is);
+				
+				System.out.println("Connected!");
+				
 			} catch (Exception e) {
 				if (!in.hasNextLine()) {
-					System.out.println("Inputing is closed! Program is closing...");
-					System.exit(0);
+					System.out.println("Inputing is closed! Client is closing...");
+					break;
 				} else {
 					e.printStackTrace();
 					System.out.println("Unexcepted error!");
+					break;
 				}
 			}
 		}
 		socket.close();
 		in.close();
-		System.out.println("Closed");
 	}
 	
 }

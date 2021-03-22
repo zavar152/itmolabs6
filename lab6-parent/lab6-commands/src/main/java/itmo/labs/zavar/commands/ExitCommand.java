@@ -30,7 +30,6 @@ public class ExitCommand extends Command {
 			throw new CommandArgumentException("This command doesn't require any arguments!\n" + getUsage());
 		} else {
 			((PrintStream) outStream).println("Program is closing...");
-			System.exit(0);
 		}
 	}
 

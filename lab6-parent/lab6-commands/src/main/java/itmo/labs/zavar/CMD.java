@@ -93,12 +93,12 @@ public class CMD {
 
 				if (env.getCommandsMap().containsKey(command[0])) {
 					try {
-						env.getHistory((String) args[0]).addToGlobal(input);
+						env.getHistory().addToGlobal(input);
 						env.getCommandsMap().get(command[0]).execute(ExecutionType.CLIENT, env, Arrays.copyOfRange(command, 1, command.length), System.in, System.out);
-						env.getHistory((String) args[0]).clearTempHistory();
+						env.getHistory().clearTempHistory();
 					} catch (CommandException e) {
 						System.err.println(e.getMessage());
-						env.getHistory((String) args[0]).clearTempHistory();
+						env.getHistory().clearTempHistory();
 					}
 				} else {
 					System.err.println("Unknown command! Use help.");

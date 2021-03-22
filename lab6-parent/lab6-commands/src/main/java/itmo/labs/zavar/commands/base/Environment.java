@@ -22,7 +22,7 @@ import itmo.labs.zavar.studygroup.StudyGroup;
 
 public class Environment {
 	private HashMap<String, Command> map;
-	private HashMap<String, History> historyMap;
+	private History history;
 	private Stack<StudyGroup> stack;
 	private String time;
 
@@ -39,7 +39,7 @@ public class Environment {
 		try {
 			this.map = map;
 			this.stack = stack;
-			historyMap = new HashMap<String, History>();
+			history = new History(); 
 			BasicFileAttributes attr = Files.readAttributes((file).toPath(), BasicFileAttributes.class);
 			time = new SimpleDateFormat("yyyy-MM-dd").format(attr.creationTime().toMillis());
 		} catch (IOException e) {
@@ -56,7 +56,8 @@ public class Environment {
 	 * @param map   Commands' map.
 	 */
 	public Environment(HashMap<String, Command> map) {
-			this.map = map;
+		history = new History();
+		this.map = map;
 	}
 	
 	/**
@@ -82,12 +83,8 @@ public class Environment {
 	 * 
 	 * @return {@link History}
 	 */
-	public History getHistory(String host) {
-
-		if (!historyMap.containsKey(host)) {
-			historyMap.put(host, new History());
-		}
-		return historyMap.get(host);
+	public History getHistory() {
+		return history;
 	}
 
 	/**

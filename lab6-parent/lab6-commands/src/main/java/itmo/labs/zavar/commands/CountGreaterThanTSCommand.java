@@ -26,7 +26,7 @@ public class CountGreaterThanTSCommand extends Command {
 
 	@Override
 	public void execute(ExecutionType type, Environment env, Object[] args, InputStream inStream, OutputStream outStream) throws CommandException {
-		if (args instanceof String[] && args.length != 1 && type.equals(ExecutionType.CLIENT)) {
+		if (args instanceof String[] && args.length != 1 && (type.equals(ExecutionType.CLIENT) || type.equals(ExecutionType.INTERNAL_CLIENT))) {
 			throw new CommandArgumentException("This command requires one argument!\n" + getUsage());
 		} else {
 			super.args = args;
@@ -39,7 +39,7 @@ public class CountGreaterThanTSCommand extends Command {
 				throw new CommandRunningException("Unexcepted error! " + e.getMessage());
 			}
 
-			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT)) {
+			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT) || type.equals(ExecutionType.INTERNAL_CLIENT)) {
 				if (env.getCollection().isEmpty()) {
 					throw new CommandRunningException("Collection is empty!");
 				}

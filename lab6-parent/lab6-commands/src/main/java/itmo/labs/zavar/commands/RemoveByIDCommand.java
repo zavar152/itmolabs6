@@ -4,12 +4,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.HashMap;
+import java.util.NoSuchElementException;
 
 import itmo.labs.zavar.commands.base.Command;
 import itmo.labs.zavar.commands.base.Environment;
 import itmo.labs.zavar.exception.CommandArgumentException;
 import itmo.labs.zavar.exception.CommandException;
 import itmo.labs.zavar.exception.CommandRunningException;
+import itmo.labs.zavar.studygroup.StudyGroup;
 
 /**
  * Deletes an item from the collection by its id. Requires ID.
@@ -26,7 +28,7 @@ public class RemoveByIDCommand extends Command {
 	@Override
 	public void execute(ExecutionType type, Environment env, Object[] args, InputStream inStream, OutputStream outStream)
 			throws CommandException {
-		if (args instanceof String[] && args.length != 1 && type.equals(ExecutionType.CLIENT)) {
+		if (args instanceof String[] && args.length != 1 && (type.equals(ExecutionType.CLIENT) || type.equals(ExecutionType.INTERNAL_CLIENT))) {
 			throw new CommandArgumentException("This command requires id of element only!\n" + getUsage());
 		} else {
 			super.args = args;
@@ -39,13 +41,20 @@ public class RemoveByIDCommand extends Command {
 				throw new CommandRunningException("Unexcepted error! " + e.getMessage());
 			}
 
-			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT)) {
+			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT) || type.equals(ExecutionType.INTERNAL_CLIENT)) {
 				if (env.getCollection().isEmpty()) {
 					throw new CommandRunningException("Collection is empty!");
 				}
 
-				env.getCollection().removeIf(e -> id == e.getId());
-				((PrintStream) outStream).println("Element deleted!");
+				try {
+					StudyGroup sg = env.getCollection().stream().filter((p) -> p.getId() == id).findFirst().orElseThrow(NoSuchElementException::new);
+					env.getCollection().remove(sg);
+					((PrintStream) outStream).println("Element deleted!");
+				} catch (NoSuchElementException e) {
+					((PrintStream) outStream).println("No such element!");
+				} catch (Exception e) {
+					throw new CommandRunningException("Unexcepted error! " + e.getMessage());
+				}
 			}
 		}
 	}

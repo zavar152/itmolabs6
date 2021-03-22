@@ -8,7 +8,7 @@
 		<version>0.0.1</version>
 	</parent>
 	<artifactId>lab6-server</artifactId>
-	<version>0.1.1</version>
+	<version>0.2.0</version>
 	<name>lab6-server</name>
 
 	<build>
@@ -68,7 +68,7 @@
 		<dependency>
 			<groupId>itmo.zavar</groupId>
 			<artifactId>lab6-commands</artifactId>
-			<version>0.2.5</version>
+			<version>0.3.0</version>
 		</dependency>
 	</dependencies>
 

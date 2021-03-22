@@ -58,17 +58,14 @@ public class AddIfMinCommand extends Command {
 	@Override
 	public void execute(ExecutionType type, Environment env, Object[] args, InputStream inStream, OutputStream outStream)
 			throws CommandException {
-		if (args instanceof String[] && args.length > 0 && type.equals(ExecutionType.CLIENT)) {
+		if (args instanceof String[] && args.length > 0 && (type.equals(ExecutionType.CLIENT) || type.equals(ExecutionType.INTERNAL_CLIENT))) {
 			throw new CommandArgumentException("This command doesn't require any arguments!\n" + getUsage());
 		} else {
 			PrintStream pr = new PrintStream(outStream);
 			Scanner in = new Scanner(inStream);
 			long id = 1;
 			
-			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT)) {
-				if (env.getCollection().isEmpty()) {
-					throw new CommandRunningException("Collection is empty!");
-				}
+			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT) || type.equals(ExecutionType.INTERNAL_CLIENT)) {
 
 				long maxId;
 				try {
@@ -101,7 +98,7 @@ public class AddIfMinCommand extends Command {
 				Float y1 = 0f;
 				Long z= 0l;
 				
-				if (type.equals(ExecutionType.CLIENT) | type.equals(ExecutionType.SCRIPT)) {
+				if (type.equals(ExecutionType.CLIENT) | type.equals(ExecutionType.SCRIPT) || type.equals(ExecutionType.INTERNAL_CLIENT)) {
 					pr.println("Enter name:");
 					name = InputParser.parseString(outStream, in, "Name", Integer.MIN_VALUE, Integer.MAX_VALUE,
 							false, false);
@@ -175,7 +172,7 @@ public class AddIfMinCommand extends Command {
 				}
 
 					StudyGroup temp1 = null;
-					if (type.equals(ExecutionType.CLIENT) | type.equals(ExecutionType.SCRIPT)) {
+					if (type.equals(ExecutionType.CLIENT) | type.equals(ExecutionType.SCRIPT) || type.equals(ExecutionType.INTERNAL_CLIENT)) {
 						temp1 = new StudyGroup(id, name, coordinates, studentsCount, expelledStudents, transferredStudents, formOfEducation, groupAdmin);
 						super.args = new Object[] {temp1};
 					} else if (type.equals(ExecutionType.SERVER)) {
@@ -183,7 +180,7 @@ public class AddIfMinCommand extends Command {
 						temp1.setId(id);
 					}
 
-					if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT)) {
+					if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT) || type.equals(ExecutionType.INTERNAL_CLIENT)) {
 						StudyGroup temp2 = Collections.min(env.getCollection());
 						if (temp1.compareTo(temp2) < 0) {
 							env.getCollection().push(temp1);

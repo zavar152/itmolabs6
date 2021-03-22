@@ -25,11 +25,11 @@ public class HelpCommand extends Command {
 	@Override
 	public void execute(ExecutionType type, Environment env, Object[] args, InputStream inStream, OutputStream outStream)
 			throws CommandException {
-		if (args instanceof String[] && args.length > 0 && type.equals(ExecutionType.CLIENT)) {
+		if (args instanceof String[] && args.length > 0 && (type.equals(ExecutionType.CLIENT) || type.equals(ExecutionType.INTERNAL_CLIENT))) {
 			throw new CommandArgumentException("This command doesn't require any arguments!\n" + getUsage());
 		} else {
 			super.args = args;
-			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT)) {
+			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT) || type.equals(ExecutionType.INTERNAL_CLIENT)) {
 				env.getCommandsMap().forEach((k, v) -> {
 					((PrintStream) outStream).println(
 							"<" + env.getCommandsMap().get(k).getName() + ">\n" + env.getCommandsMap().get(k).getHelp()
