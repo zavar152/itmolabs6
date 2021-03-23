@@ -14,16 +14,21 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.io.input.ReaderInputStream;
+import org.apache.commons.lang3.ArrayUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
+
 import itmo.labs.zavar.commands.base.Command;
 import itmo.labs.zavar.commands.base.Environment;
+import itmo.labs.zavar.commands.base.Command.ExecutionType;
 import itmo.labs.zavar.exception.CommandArgumentException;
 import itmo.labs.zavar.exception.CommandException;
 import itmo.labs.zavar.exception.CommandRecursionException;
 import itmo.labs.zavar.exception.CommandRunningException;
+import sun.security.util.ArrayUtil;
 
 /**
  * Reads and executes the script from the specified file. The script contains
@@ -42,75 +47,217 @@ public class ExecuteScriptCommand extends Command {
 	@Override
 	public void execute(ExecutionType type, Environment env, Object[] args, InputStream inStream, OutputStream outStream)
 			throws CommandException {
-		if ((args.length > 1 || args.length < 1) && type.equals(ExecutionType.CLIENT)) {
+		if ((args.length > 1 || args.length < 1) && (type.equals(ExecutionType.CLIENT) || type.equals(ExecutionType.INTERNAL_CLIENT))) {
 			throw new CommandArgumentException("This command requires one argument!\n" + getUsage());
 		} else {
-			super.args = args;
-			if (!new File((String) args[0]).exists()) {
-				throw new CommandRunningException("File not found!");
-			}
+			if (type.equals(ExecutionType.SCRIPT) || type.equals(ExecutionType.INTERNAL_CLIENT)) {
+				super.args = args;
+				if (!new File((String) args[0]).exists()) {
+					throw new CommandRunningException("File not found!");
+				}
 
-			if ((env.getHistory().getTempHistory().size() > 1) && (env.getHistory().getTempHistory().contains(getName() + " " + Arrays.toString(args).replace("[", "").replace("]", "")))) {
-				throw new CommandRecursionException();
-			}
-			env.getHistory().addToTemp((getName() + " " + Arrays.toString(args).replace("[", "").replace("]", "")));
+				if ((env.getHistory().getTempHistory().size() > 1) && (env.getHistory().getTempHistory().contains(getName() + " " + Arrays.toString(args).replace("[", "").replace("]", "")))) {
+					throw new CommandRecursionException();
+				}
+				env.getHistory().addToTemp((getName() + " " + Arrays.toString(args).replace("[", "").replace("]", "")));
 
-			List<String> lines = null;
-			try {
-				lines = Files.readAllLines(Paths.get((String) args[0]), StandardCharsets.UTF_8);
-			} catch (IOException e) {
-				throw new CommandRunningException("IOException!");
-			} catch (Exception e) {
-				throw new CommandRunningException("Error while reading script file!");
-			}
+				List<String> lines = null;
+				try {
+					lines = Files.readAllLines(Paths.get((String) args[0]), StandardCharsets.UTF_8);
+				} catch (IOException e) {
+					throw new CommandRunningException("IOException!");
+				} catch (Exception e) {
+					throw new CommandRunningException("Error while reading script file!");
+				}
 
-			for (int i = 0; i < lines.size(); i++) {
-				String line = lines.get(i);
-				line = line.replaceAll(" +", " ").trim();
-				String command[] = line.split(" ");
+				for (int i = 0; i < lines.size(); i++) {
+					String line = lines.get(i);
+					line = line.replaceAll(" +", " ").trim();
+					String command[] = line.split(" ");
 
-				if (env.getCommandsMap().containsKey(command[0])) {
-					try {
-						if (env.getCommandsMap().get(command[0]).isNeedInput()) {
-							String to = "";
-							int jsonPos = command.length;
-							for (int k = 0; k < command.length; k++) {
-								if (command[k].contains("{") || command[k].contains("}")) {
-									jsonPos = k;
-									break;
+					if (env.getCommandsMap().containsKey(command[0])) {
+						try {
+							if (env.getCommandsMap().get(command[0]).isNeedInput()) {
+								String to = "";
+								int jsonPos = command.length;
+								for (int k = 0; k < command.length; k++) {
+									if (command[k].contains("{") || command[k].contains("}")) {
+										jsonPos = k;
+										break;
+									}
+								}
+
+								JSONObject obj;
+								try {
+									obj = (JSONObject) new JSONParser().parse(command[jsonPos]);
+								} catch (ParseException | ArrayIndexOutOfBoundsException e) {
+									throw new CommandRunningException("JSON parsing failed!");
+								}
+
+								String[] order = env.getCommandsMap().get(command[0]).getInputOrder(obj.size());
+								for (int j = 0; j < order.length; j++) {
+									to = to + obj.get(order[j]) + "\n";
+								}
+								env.getHistory().addToGlobal(line);
+								env.getCommandsMap().get(command[0]).execute(ExecutionType.SCRIPT, env, Arrays.copyOfRange(command, 1, jsonPos), new ReaderInputStream(new StringReader(to), StandardCharsets.UTF_8), outStream);
+							} else {
+								env.getHistory().addToGlobal(line);
+								env.getCommandsMap().get(command[0]).execute(ExecutionType.SCRIPT, env, Arrays.copyOfRange(command, 1, command.length), inStream, outStream);
+							}
+						} catch (CommandException e) {
+							throw new CommandException(e.getMessage());
+						} catch (Exception e) {
+							((PrintStream) outStream).println("Script is interrupted! Check your commands and arguments!");
+							throw new CommandException(e.getMessage());
+						}
+					} else {
+						((PrintStream) outStream).println("Script is interrupted!");
+						throw new CommandException("Unknown command #" + (i + 1) + "! Please, check your script!");
+					}
+				}
+				((PrintStream) outStream).println("Script is completed!");
+			} else if(type.equals(ExecutionType.CLIENT)) {
+				if (!new File((String) args[0]).exists()) {
+					throw new CommandRunningException("File not found!");
+				}
+
+				if ((env.getHistory().getTempHistory().size() > 1) && (env.getHistory().getTempHistory().contains(getName() + " " + Arrays.toString(args).replace("[", "").replace("]", "")))) {
+					throw new CommandRecursionException();
+				}
+				env.getHistory().addToTemp((getName() + " " + Arrays.toString(args).replace("[", "").replace("]", "")));
+
+				List<String> lines = null;
+				try {
+					lines = Files.readAllLines(Paths.get((String) args[0]), StandardCharsets.UTF_8);
+				} catch (IOException e) {
+					throw new CommandRunningException("IOException!");
+				} catch (Exception e) {
+					throw new CommandRunningException("Error while reading script file!");
+				}
+
+				for (int i = 0; i < lines.size(); i++) {
+					String line = lines.get(i);
+					line = line.replaceAll(" +", " ").trim();
+					String command[] = line.split(" ");
+
+					if (env.getCommandsMap().containsKey(command[0])) {
+						try {
+							if (env.getCommandsMap().get(command[0]).isNeedInput()) {
+								String to = "";
+								int jsonPos = command.length;
+								for (int k = 0; k < command.length; k++) {
+									if (command[k].contains("{") || command[k].contains("}")) {
+										jsonPos = k;
+										break;
+									}
+								}
+
+								JSONObject obj;
+								try {
+									obj = (JSONObject) new JSONParser().parse(command[jsonPos]);
+								} catch (ParseException | ArrayIndexOutOfBoundsException e) {
+									throw new CommandRunningException("JSON parsing failed!");
+								}
+
+								String[] order = env.getCommandsMap().get(command[0]).getInputOrder(obj.size());
+								for (int j = 0; j < order.length; j++) {
+									to = to + obj.get(order[j]) + "\n";
+								}
+								env.getHistory().addToGlobal(line);
+								env.getCommandsMap().get(command[0]).execute(ExecutionType.CLIENT, env, Arrays.copyOfRange(command, 1, jsonPos), new ReaderInputStream(new StringReader(to), StandardCharsets.UTF_8), outStream);
+								if(!command[0].equals("execute_script")) {
+									String temp = "";
+									for(String s : command)
+										temp = temp + " " + s;
+									temp = temp.substring(1);
+									super.args = ArrayUtils.addAll(super.args, temp);
+									//System.out.println(Arrays.toString(super.args));
+								}
+							} else {
+								env.getHistory().addToGlobal(line);
+								env.getCommandsMap().get(command[0]).execute(ExecutionType.CLIENT, env, Arrays.copyOfRange(command, 1, command.length), inStream, outStream);
+								if(!command[0].equals("execute_script")) {
+									String temp = "";
+									for(String s : command)
+										temp = temp + " " + s;
+									temp = temp.substring(1);
+									super.args = ArrayUtils.addAll(super.args, temp);
+									//System.out.println(Arrays.toString(super.args));
 								}
 							}
-
-							JSONObject obj;
-							try {
-								obj = (JSONObject) new JSONParser().parse(command[jsonPos]);
-							} catch (ParseException | ArrayIndexOutOfBoundsException e) {
-								throw new CommandRunningException("JSON parsing failed!");
-							}
-
-							String[] order = env.getCommandsMap().get(command[0]).getInputOrder(obj.size());
-							for (int j = 0; j < order.length; j++) {
-								to = to + obj.get(order[j]) + "\n";
-							}
-							env.getHistory().addToGlobal(line);
-							env.getCommandsMap().get(command[0]).execute(ExecutionType.SCRIPT, env, Arrays.copyOfRange(command, 1, jsonPos), new ReaderInputStream(new StringReader(to), StandardCharsets.UTF_8), outStream);
-						} else {
-							env.getHistory().addToGlobal(line);
-							env.getCommandsMap().get(command[0]).execute(ExecutionType.SCRIPT, env, Arrays.copyOfRange(command, 1, command.length), inStream, outStream);
+						} catch (CommandException e) {
+							throw new CommandException(e.getMessage());
+						} catch (Exception e) {
+							((PrintStream) outStream).println("Script is interrupted! Check your commands and arguments!");
+							throw new CommandException(e.getMessage());
 						}
-					} catch (CommandException e) {
-						throw new CommandException(e.getMessage());
-					} catch (Exception e) {
-						((PrintStream) outStream).println("Script is interrupted! Check your commands and arguments!");
-						throw new CommandException(e.getMessage());
+					} else {
+						((PrintStream) outStream).println("Script is interrupted!");
+						throw new CommandException("Unknown command #" + (i + 1) + "! Please, check your script!");
 					}
-				} else {
-					((PrintStream) outStream).println("Script is interrupted!");
-					throw new CommandException("Unknown command #" + (i + 1) + "! Please, check your script!");
 				}
+			} else if(type.equals(ExecutionType.SERVER)) {
+				String[] temp = new String[args.length];
+				for (int j = 0; j < args.length; j++) {
+					temp[j] = (String) args[j];
+				}
+					
+				
+				List<String> lines = null;
+				try {
+					lines = Arrays.asList(temp);//Files.readAllLines(Paths.get((String) args[0]), StandardCharsets.UTF_8);
+				} catch (Exception e) {
+					throw new CommandRunningException("Error while reading script file!");
+				}
+
+				for (int i = 0; i < lines.size(); i++) {
+					String line = lines.get(i);
+					line = line.replaceAll(" +", " ").trim();
+					String command[] = line.split(" ");
+
+					if (env.getCommandsMap().containsKey(command[0])) {
+						try {
+							if (env.getCommandsMap().get(command[0]).isNeedInput()) {
+								String to = "";
+								int jsonPos = command.length;
+								for (int k = 0; k < command.length; k++) {
+									if (command[k].contains("{") || command[k].contains("}")) {
+										jsonPos = k;
+										break;
+									}
+								}
+
+								JSONObject obj;
+								try {
+									obj = (JSONObject) new JSONParser().parse(command[jsonPos]);
+								} catch (ParseException | ArrayIndexOutOfBoundsException e) {
+									throw new CommandRunningException("JSON parsing failed!");
+								}
+
+								String[] order = env.getCommandsMap().get(command[0]).getInputOrder(obj.size());
+								for (int j = 0; j < order.length; j++) {
+									to = to + obj.get(order[j]) + "\n";
+								}
+								env.getHistory().addToGlobal(line);
+								env.getCommandsMap().get(command[0]).execute(ExecutionType.SCRIPT, env, Arrays.copyOfRange(command, 1, jsonPos), new ReaderInputStream(new StringReader(to), StandardCharsets.UTF_8), outStream);
+							} else {
+								env.getHistory().addToGlobal(line);
+								env.getCommandsMap().get(command[0]).execute(ExecutionType.SCRIPT, env, Arrays.copyOfRange(command, 1, command.length), inStream, outStream);
+							}
+						} catch (CommandException e) {
+							throw new CommandException(e.getMessage());
+						} catch (Exception e) {
+							((PrintStream) outStream).println("Script is interrupted! Check your commands and arguments!");
+							throw new CommandException(e.getMessage());
+						}
+					} else {
+						((PrintStream) outStream).println("Script is interrupted!");
+						throw new CommandException("Unknown command #" + (i + 1) + "! Please, check your script!");
+					}
+				}
+				((PrintStream) outStream).println("Script is completed!");
 			}
 		}
-		((PrintStream) outStream).println("Script is completed!");
 	}
 
 	/**

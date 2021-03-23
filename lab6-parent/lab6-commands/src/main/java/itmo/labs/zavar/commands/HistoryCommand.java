@@ -27,7 +27,7 @@ public class HistoryCommand extends Command {
 	@Override
 	public void execute(ExecutionType type, Environment env, Object[] args, InputStream inStream, OutputStream outStream) throws CommandException {
 		if(type.equals(ExecutionType.CLIENT) || type.equals(ExecutionType.INTERNAL_CLIENT)) {
-			if (args instanceof String[] && args.length > 0) {
+			if (args instanceof String[] && (args.length > 2 || args.length < 0) && (type.equals(ExecutionType.CLIENT) || type.equals(ExecutionType.INTERNAL_CLIENT)) ) {
 				throw new CommandArgumentException("This command doesn't require any arguments!\n" + getUsage());
 			} else if (args.length == 0) {
 				super.args = args;
