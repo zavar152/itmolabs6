@@ -181,7 +181,6 @@ public class ExecuteScriptCommand extends Command {
 										temp = temp + " " + s;
 									temp = temp.substring(1);
 									super.args = ArrayUtils.addAll(super.args, temp);
-									//System.out.println(Arrays.toString(super.args));
 								}
 							} else {
 								env.getHistory().addToGlobal(line);
@@ -192,7 +191,6 @@ public class ExecuteScriptCommand extends Command {
 										temp = temp + " " + s;
 									temp = temp.substring(1);
 									super.args = ArrayUtils.addAll(super.args, temp);
-									//System.out.println(Arrays.toString(super.args));
 								}
 							}
 						} catch (CommandException e) {
@@ -214,7 +212,7 @@ public class ExecuteScriptCommand extends Command {
 				
 				List<String> lines = null;
 				try {
-					lines = Arrays.asList(temp);//Files.readAllLines(Paths.get((String) args[0]), StandardCharsets.UTF_8);
+					lines = Arrays.asList(temp);
 				} catch (Exception e) {
 					throw new CommandRunningException("Error while reading script file!");
 				}

@@ -52,6 +52,12 @@ public class Server {
 	
 	public static void main(String[] args) {
 		
+		if(args.length != 3)
+		{
+			rootLogger.error("You should enter a path to .csv file and server address!");
+			System.exit(0);
+		}
+		
 		Environment[] envs = prepareEnvironments(args);
 		Environment clientEnv = envs[0];
 		Environment internalEnv = envs[1];
@@ -62,7 +68,7 @@ public class Server {
 			if (asyncServerChannel.isOpen()) {
 				asyncServerChannel.setOption(StandardSocketOptions.SO_RCVBUF, 4096*4);
 				asyncServerChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
-				asyncServerChannel.bind(new InetSocketAddress("127.0.0.1", 2222));
+				asyncServerChannel.bind(new InetSocketAddress(args[1], Integer.parseInt(args[2])));
 				rootLogger.info("Waiting for connections ...");
 				
 				taskExecutor.submit(() -> {
@@ -136,10 +142,6 @@ public class Server {
 	}
 	
 	private static Environment[] prepareEnvironments(String[] args) {
-		if (args.length != 1) {
-			args = new String[] { "" };
-			rootLogger.error("You should enter a path to .csv file! Collection will be empty!");
-		}
 
 		File file = new File(args[0]);
 

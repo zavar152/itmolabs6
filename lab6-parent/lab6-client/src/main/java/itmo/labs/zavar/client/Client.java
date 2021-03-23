@@ -93,7 +93,7 @@ public class Client {
 		PrintWriter out = new PrintWriter(writer, true);
 		Scanner in = new Scanner(System.in);
 		ReadableByteChannel channel = Channels.newChannel(is);
-		ByteBuffer buf = ByteBuffer.allocateDirect(Integer.MAX_VALUE);
+		ByteBuffer buf = ByteBuffer.allocateDirect(4096*4);
 		String input = "";
 		while (true) {
 
@@ -116,25 +116,21 @@ public class Client {
 						ObjectOutputStream ser = new ObjectOutputStream(stream);
 						ser.writeObject(env.getCommandsMap().get(command[0]).getPackage());
 						String str = Base64.getMimeEncoder().encodeToString(stream.toByteArray());
-						// System.out.println(str);
 						out.println(str);
 						ser.close();
 						stream.close();
 
 						buf.rewind();
 						int bytesRead = channel.read(buf);
-						// System.out.println(bytesRead);
 						buf.rewind();
 						byte[] b = new byte[bytesRead];
 						for (int i = 0; i < bytesRead; i++) {
 							b[i] = buf.get();
-							// System.out.println(i + " Byte read: " + b);
 						}
 						ByteArrayInputStream stream2 = new ByteArrayInputStream(Base64.getMimeDecoder().decode(b));
 						ObjectInputStream obj = new ObjectInputStream(stream2);
 						String per = (String) obj.readObject();
 						System.out.println(per);
-						// System.out.println("next");
 						buf.flip();
 						buf.put(new byte[buf.remaining()]);
 						buf.clear();
