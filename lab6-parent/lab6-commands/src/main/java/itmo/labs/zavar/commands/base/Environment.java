@@ -40,6 +40,9 @@ public class Environment {
 			this.map = map;
 			this.stack = stack;
 			history = new History(); 
+			if (!file.canWrite() || file.isDirectory() || !file.isFile()) {
+				throw new IOException();
+			}
 			BasicFileAttributes attr = Files.readAttributes((file).toPath(), BasicFileAttributes.class);
 			time = new SimpleDateFormat("yyyy-MM-dd").format(attr.creationTime().toMillis());
 		} catch (IOException e) {

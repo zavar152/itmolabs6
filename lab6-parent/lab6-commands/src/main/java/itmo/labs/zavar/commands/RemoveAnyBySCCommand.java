@@ -11,7 +11,6 @@ import itmo.labs.zavar.commands.base.Environment;
 import itmo.labs.zavar.exception.CommandArgumentException;
 import itmo.labs.zavar.exception.CommandException;
 import itmo.labs.zavar.exception.CommandRunningException;
-import itmo.labs.zavar.studygroup.StudyGroup;
 
 /**
  * Removes one element from the collection whose studentsCount field value is
@@ -42,14 +41,13 @@ public class RemoveAnyBySCCommand extends Command {
 				throw new CommandRunningException("Unexcepted error! " + e.getMessage());
 			}
 
-			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT) || type.equals(ExecutionType.INTERNAL_CLIENT)) {
+			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT) | type.equals(ExecutionType.INTERNAL_CLIENT)) {
 				if (env.getCollection().isEmpty()) {
 					throw new CommandRunningException("Collection is empty!");
 				}
 
 				try {
-					StudyGroup sg = env.getCollection().stream().filter((p) -> p.getStudentsCount().equals(sc)).findFirst().orElseThrow(NoSuchElementException::new);
-					env.getCollection().remove(sg);
+					env.getCollection().remove(env.getCollection().stream().filter((p) -> p.getStudentsCount().equals(sc)).findFirst().orElseThrow(NoSuchElementException::new));
 					((PrintStream) outStream).println("Element deleted!");
 				} catch (NoSuchElementException e) {
 					((PrintStream) outStream).println("No such element!");

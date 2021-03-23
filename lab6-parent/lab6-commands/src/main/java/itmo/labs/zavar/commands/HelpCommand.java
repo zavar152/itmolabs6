@@ -29,7 +29,7 @@ public class HelpCommand extends Command {
 			throw new CommandArgumentException("This command doesn't require any arguments!\n" + getUsage());
 		} else {
 			super.args = args;
-			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT) || type.equals(ExecutionType.INTERNAL_CLIENT)) {
+			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT) | type.equals(ExecutionType.INTERNAL_CLIENT)) {
 				env.getCommandsMap().forEach((k, v) -> {
 					((PrintStream) outStream).println(
 							"<" + env.getCommandsMap().get(k).getName() + ">\n" + env.getCommandsMap().get(k).getHelp()

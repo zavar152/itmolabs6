@@ -10,7 +10,6 @@ import itmo.labs.zavar.commands.base.Environment;
 import itmo.labs.zavar.exception.CommandArgumentException;
 import itmo.labs.zavar.exception.CommandException;
 import itmo.labs.zavar.exception.CommandRunningException;
-import itmo.labs.zavar.studygroup.StudyGroup;
 
 /**
  * Outputs all elements of the collection in a string representation to the
@@ -32,12 +31,12 @@ public class ShowCommand extends Command {
 			throw new CommandArgumentException("This command doesn't require any arguments!\n" + getUsage());
 		} else {
 			super.args = args;
-			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT) || type.equals(ExecutionType.INTERNAL_CLIENT)) {
+			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT) | type.equals(ExecutionType.INTERNAL_CLIENT)) {
 				if (env.getCollection().isEmpty()) {
 					throw new CommandRunningException("Collection is empty!");
 				}
 
-				for (StudyGroup sg : env.getCollection()) {
+				env.getCollection().stream().forEachOrdered((sg) -> {
 					pr.println("ID: " + sg.getId());
 					pr.println("Name: " + sg.getName());
 					pr.println("Coordinte X: " + sg.getCoordinates().getX());
@@ -63,7 +62,7 @@ public class ShowCommand extends Command {
 					} else {
 						pr.println();
 					}
-				}
+				});
 			}
 		}
 	}

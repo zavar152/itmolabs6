@@ -4,7 +4,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.HashMap;
-import java.util.ListIterator;
 
 import itmo.labs.zavar.commands.base.Command;
 import itmo.labs.zavar.commands.base.Environment;
@@ -41,9 +40,8 @@ public class HistoryCommand extends Command {
 				if (env.getHistory().getGlobalHistory().size() - Integer.parseInt((String) args[0]) < 0) {
 					throw new CommandRunningException("There are only " + env.getHistory().getGlobalHistory().size() + " commands in history!");
 				} else {
-					ListIterator<String> iterator = env.getHistory().getGlobalHistory().listIterator(env.getHistory().getGlobalHistory().size() - Integer.parseInt((String) args[0]));
 					((PrintStream) outStream).println("-------");
-					iterator.forEachRemaining(((PrintStream) outStream)::println);
+					env.getHistory().getGlobalHistory().stream().skip(env.getHistory().getGlobalHistory().size() - Integer.parseInt((String) args[0])).forEachOrdered(((PrintStream) outStream)::println);
 				}
 			}
 		}

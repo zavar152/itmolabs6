@@ -44,12 +44,16 @@ import itmo.labs.zavar.commands.base.Environment;
 import itmo.labs.zavar.exception.CommandException;
 
 public class Client {
-	private static final int PORT = 1111;
 	
 	private static HashMap<String, Command> commandsMap = new HashMap<String, Command>();
 
 
 	public static void main(String args[]) throws IOException, InterruptedException {
+		
+		if(args.length != 2) {
+			System.out.println("You should enter ip and port!");
+			System.exit(0);
+		}
 		
 		HelpCommand.register(commandsMap);
 		ShowCommand.register(commandsMap);
@@ -75,7 +79,7 @@ public class Client {
 		Socket socket = null;
 		while(!connected) {
 			try {
-				socket = new Socket("localhost", PORT);
+				socket = new Socket(args[0], Integer.parseInt(args[1]));
 				connected = true;
 			} catch (ConnectException e1) {
 				Thread.sleep(2000);
@@ -147,7 +151,7 @@ public class Client {
 				
 				while(!connected) {
 					try {
-						socket = new Socket("localhost", PORT);
+						socket = new Socket(args[0], Integer.parseInt(args[1]));
 						connected = true;
 					} catch (ConnectException e1) {
 						Thread.sleep(2000);

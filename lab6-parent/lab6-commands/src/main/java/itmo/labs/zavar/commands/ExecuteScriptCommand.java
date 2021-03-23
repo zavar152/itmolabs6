@@ -19,16 +19,12 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
-
 import itmo.labs.zavar.commands.base.Command;
 import itmo.labs.zavar.commands.base.Environment;
-import itmo.labs.zavar.commands.base.Command.ExecutionType;
 import itmo.labs.zavar.exception.CommandArgumentException;
 import itmo.labs.zavar.exception.CommandException;
 import itmo.labs.zavar.exception.CommandRecursionException;
 import itmo.labs.zavar.exception.CommandRunningException;
-import sun.security.util.ArrayUtil;
 
 /**
  * Reads and executes the script from the specified file. The script contains
@@ -52,7 +48,14 @@ public class ExecuteScriptCommand extends Command {
 		} else {
 			if (type.equals(ExecutionType.SCRIPT) || type.equals(ExecutionType.INTERNAL_CLIENT)) {
 				super.args = args;
-				if (!new File((String) args[0]).exists()) {
+				
+				File file = new File((String) args[0]);
+				
+				if (!file.canWrite() || file.isDirectory() || !file.isFile()) {
+					throw new CommandRunningException("Error while reading script file!");
+				}
+				
+				if (!file.exists()) {
 					throw new CommandRunningException("File not found!");
 				}
 
@@ -117,7 +120,14 @@ public class ExecuteScriptCommand extends Command {
 				}
 				((PrintStream) outStream).println("Script is completed!");
 			} else if(type.equals(ExecutionType.CLIENT)) {
-				if (!new File((String) args[0]).exists()) {
+				
+				File file = new File((String) args[0]);
+				
+				if (!file.canWrite() || file.isDirectory() || !file.isFile()) {
+					throw new CommandRunningException("Error while reading script file!");
+				}
+				
+				if (!file.exists()) {
 					throw new CommandRunningException("File not found!");
 				}
 
@@ -201,7 +211,6 @@ public class ExecuteScriptCommand extends Command {
 				for (int j = 0; j < args.length; j++) {
 					temp[j] = (String) args[j];
 				}
-					
 				
 				List<String> lines = null;
 				try {

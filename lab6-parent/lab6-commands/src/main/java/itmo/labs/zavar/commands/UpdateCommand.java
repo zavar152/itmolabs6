@@ -65,7 +65,7 @@ public class UpdateCommand extends Command {
 			throw new CommandArgumentException("This command requires one argument!\n" + getUsage());
 		} else {
 			PrintStream pr = new PrintStream(outStream);
-			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT) || type.equals(ExecutionType.INTERNAL_CLIENT)) {
+			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT) | type.equals(ExecutionType.INTERNAL_CLIENT)) {
 				if (env.getCollection().isEmpty()) {
 					throw new CommandRunningException("Collection is empty!");
 				}
@@ -131,8 +131,7 @@ public class UpdateCommand extends Command {
 				sg = new StudyGroup();
 			} else if (type.equals(ExecutionType.SCRIPT) || type.equals(ExecutionType.INTERNAL_CLIENT)) {
 				try {
-					sg = env.getCollection().stream().filter(p -> p.getId() == Long.parseLong((String) args[0])).findFirst()
-							.orElseThrow(NoSuchElementException::new);
+					sg = env.getCollection().stream().filter(p -> p.getId() == Long.parseLong((String) args[0])).findFirst().orElseThrow(NoSuchElementException::new);
 				} catch (NoSuchElementException e) {
 					throw new CommandArgumentException("No such id in the collection!");
 				} catch (Exception e) {
@@ -155,8 +154,7 @@ public class UpdateCommand extends Command {
 						break;
 					case 2:
 						pr.println("Enter name:");
-						String name = InputParser.parseString(outStream, in, "Name", Integer.MIN_VALUE, Integer.MAX_VALUE,
-								false, false);
+						String name = InputParser.parseString(outStream, in, "Name", Integer.MIN_VALUE, Integer.MAX_VALUE, false, false);
 						sg.setName(name);
 						pr.println("Name updated");
 						break;
@@ -164,48 +162,41 @@ public class UpdateCommand extends Command {
 						pr.println("Enter X coordinate:");
 						Double x = InputParser.parseDouble(outStream, in, "X", -573.0d, Double.MAX_VALUE, false, false);
 						pr.println("Enter Y coordinate:");
-						Float y = InputParser.parseFloat(outStream, in, "Y", Float.MIN_VALUE, Float.MAX_VALUE, false,
-								false);
+						Float y = InputParser.parseFloat(outStream, in, "Y", Float.MIN_VALUE, Float.MAX_VALUE, false, false);
 						Coordinates coordinates = new Coordinates(x, y);
 						sg.setCoordinates(coordinates);
 						pr.println("Coordinates updated");
 						break;
 					case 4:
 						pr.println("Enter students count:");
-						Long studentsCount = InputParser.parseLong(outStream, in, "Students count", 0l, Long.MAX_VALUE,
-								false, false);
+						Long studentsCount = InputParser.parseLong(outStream, in, "Students count", 0l, Long.MAX_VALUE, false, false);
 						sg.setStudentsCount(studentsCount);
 						pr.println("Students count updated");
 						break;
 					case 5:
 						pr.println("Enter expelled students count:");
-						int expelledStudents = InputParser.parseInteger(outStream, in, "Expelled students", 0,
-								Integer.MAX_VALUE, false, true);
+						int expelledStudents = InputParser.parseInteger(outStream, in, "Expelled students", 0, Integer.MAX_VALUE, false, true);
 						sg.setExpelledStudents(expelledStudents);
 						pr.println("Expelled students updated");
 						break;
 					case 6:
 						pr.println("Enter transferred students count:");
-						long transferredStudents = InputParser.parseLong(outStream, in, "Transferred students", 0l,
-								Long.MAX_VALUE, false, true);
+						long transferredStudents = InputParser.parseLong(outStream, in, "Transferred students", 0l, Long.MAX_VALUE, false, true);
 						sg.setTransferredStudents(transferredStudents);
 						pr.println("Transferred students updated");
 						break;
 					case 7:
 						pr.println("Enter form of education, values - " + Arrays.toString(FormOfEducation.values()));
-						FormOfEducation formOfEducation = FormOfEducation
-								.valueOf(InputParser.parseEnum(outStream, in, FormOfEducation.class, false));
+						FormOfEducation formOfEducation = FormOfEducation.valueOf(InputParser.parseEnum(outStream, in, FormOfEducation.class, false));
 						sg.setFormOfEducation(formOfEducation);
 						pr.println("Form of education updated");
 						break;
 					case 8:
 						pr.println("Enter name:");
-						String admName = InputParser.parseString(outStream, in, "Name", Integer.MIN_VALUE,
-								Integer.MAX_VALUE, false, false);
+						String admName = InputParser.parseString(outStream, in, "Name", Integer.MIN_VALUE, Integer.MAX_VALUE, false, false);
 
 						pr.println("Enter passport ID:");
-						String passportID = InputParser.parseString(outStream, in, "Passport ID", Integer.MIN_VALUE,
-								Integer.MAX_VALUE, true, false);
+						String passportID = InputParser.parseString(outStream, in, "Passport ID", Integer.MIN_VALUE, Integer.MAX_VALUE, true, false);
 
 						pr.println("Enter eye color, values - " + Arrays.toString(Color.values()));
 						Color eyeColor = Color.valueOf(InputParser.parseEnum(outStream, in, Color.class, false));
@@ -222,16 +213,13 @@ public class UpdateCommand extends Command {
 
 						Location location;
 						pr.println("Enter name location:");
-						String nameStr = InputParser.parseString(outStream, in, "Location name", Integer.MIN_VALUE, 348,
-								true, false);
+						String nameStr = InputParser.parseString(outStream, in, "Location name", Integer.MIN_VALUE, 348, true, false);
 
 						pr.println("Enter X:");
-						float x1 = InputParser.parseFloat(outStream, in, "X", Float.MIN_VALUE, Float.MAX_VALUE, false,
-								true);
+						float x1 = InputParser.parseFloat(outStream, in, "X", Float.MIN_VALUE, Float.MAX_VALUE, false, true);
 
 						pr.println("Enter Y:");
-						Float y1 = InputParser.parseFloat(outStream, in, "Y", Float.MIN_VALUE, Float.MAX_VALUE, false,
-								false);
+						Float y1 = InputParser.parseFloat(outStream, in, "Y", Float.MIN_VALUE, Float.MAX_VALUE, false, false);
 
 						pr.println("Enter Z:");
 						Long z = InputParser.parseLong(outStream, in, "Z", Long.MIN_VALUE, Long.MAX_VALUE, false, false);
@@ -382,8 +370,7 @@ public class UpdateCommand extends Command {
 	private StudyGroup updateAll(StudyGroup sg, Scanner in, InputStream inStream, OutputStream outStream) {
 		PrintStream pr = new PrintStream(outStream);
 		pr.println("Enter name:");
-		String name = InputParser.parseString(outStream, in, "Name", Integer.MIN_VALUE, Integer.MAX_VALUE, false,
-				false);
+		String name = InputParser.parseString(outStream, in, "Name", Integer.MIN_VALUE, Integer.MAX_VALUE, false, false);
 		sg.setName(name);
 
 		Coordinates coordinates = null;
@@ -405,13 +392,11 @@ public class UpdateCommand extends Command {
 		sg.setStudentsCount(studentsCount);
 
 		pr.println("Enter expelled students count:");
-		expelledStudents = InputParser.parseInteger(outStream, in, "Expelled students", 0, Integer.MAX_VALUE, false,
-				true);
+		expelledStudents = InputParser.parseInteger(outStream, in, "Expelled students", 0, Integer.MAX_VALUE, false, true);
 		sg.setExpelledStudents(expelledStudents);
 
 		pr.println("Enter transferred students count:");
-		transferredStudents = InputParser.parseLong(outStream, in, "Transferred students", 0l, Long.MAX_VALUE, false,
-				true);
+		transferredStudents = InputParser.parseLong(outStream, in, "Transferred students", 0l, Long.MAX_VALUE, false, true);
 		sg.setTransferredStudents(transferredStudents);
 
 		pr.println("Enter form of education, values - " + Arrays.toString(FormOfEducation.values()));
@@ -419,17 +404,14 @@ public class UpdateCommand extends Command {
 		sg.setFormOfEducation(formOfEducation);
 
 		pr.println("Do you want to update group's admin? Enter [YES] if you want");
-		String answ = InputParser.parseString(outStream, in, "Answer", Integer.MIN_VALUE, Integer.MAX_VALUE, false,
-				true);
+		String answ = InputParser.parseString(outStream, in, "Answer", Integer.MIN_VALUE, Integer.MAX_VALUE, false, true);
 
 		if (answ.equals("YES")) {
 			pr.println("Enter name:");
-			String admName = InputParser.parseString(outStream, in, "Name", Integer.MIN_VALUE, Integer.MAX_VALUE, false,
-					false);
+			String admName = InputParser.parseString(outStream, in, "Name", Integer.MIN_VALUE, Integer.MAX_VALUE, false, false);
 
 			pr.println("Enter passport ID:");
-			String passportID = InputParser.parseString(outStream, in, "Passport ID", Integer.MIN_VALUE,
-					Integer.MAX_VALUE, true, false);
+			String passportID = InputParser.parseString(outStream, in, "Passport ID", Integer.MIN_VALUE, Integer.MAX_VALUE, true, false);
 
 			pr.println("Enter eye color, values - " + Arrays.toString(Color.values()));
 			Color eyeColor = Color.valueOf(InputParser.parseEnum(outStream, in, Color.class, false));
@@ -446,8 +428,7 @@ public class UpdateCommand extends Command {
 
 			Location location;
 			pr.println("Enter name location:");
-			String nameStr = InputParser.parseString(outStream, in, "Location name", Integer.MIN_VALUE, 348, true,
-					false);
+			String nameStr = InputParser.parseString(outStream, in, "Location name", Integer.MIN_VALUE, 348, true, false);
 
 			pr.println("Enter X:");
 			float x1 = InputParser.parseFloat(outStream, in, "X", Float.MIN_VALUE, Float.MAX_VALUE, false, true);

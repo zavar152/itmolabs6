@@ -57,7 +57,7 @@ public class Server {
 			if (asyncServerChannel.isOpen()) {
 				asyncServerChannel.setOption(StandardSocketOptions.SO_RCVBUF, 4096*4);
 				asyncServerChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
-				asyncServerChannel.bind(new InetSocketAddress("127.0.0.1", 1111));
+				asyncServerChannel.bind(new InetSocketAddress("127.0.0.1", 2222));
 				System.out.println("Waiting for connections ...");
 				
 				taskExecutor.submit(() -> {
@@ -70,7 +70,8 @@ public class Server {
 
 							if (command[0].equals("exit")) {
 								internalEnv.getCommandsMap().get(command[0]).execute(ExecutionType.INTERNAL_CLIENT, internalEnv, Arrays.copyOfRange(command, 1, command.length), System.in, System.out);
-								internalEnv.getCommandsMap().get("save").execute(ExecutionType.INTERNAL_CLIENT, internalEnv, new Object[] { args[0] }, System.in, System.out);
+								if(args.length != 0)
+									internalEnv.getCommandsMap().get("save").execute(ExecutionType.INTERNAL_CLIENT, internalEnv, new Object[] { args[0] }, System.in, System.out);
 								taskExecutor.shutdownNow();
 								System.exit(0);
 							}

@@ -30,7 +30,7 @@ public class InfoCommand extends Command {
 			throw new CommandArgumentException("This command doesn't require any arguments!\n" + getUsage());
 		} else {
 			super.args = args;
-			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT)  || type.equals(ExecutionType.INTERNAL_CLIENT)) {
+			if (type.equals(ExecutionType.SERVER) | type.equals(ExecutionType.SCRIPT)  | type.equals(ExecutionType.INTERNAL_CLIENT)) {
 				PrintStream pr = ((PrintStream) outStream);
 				pr.println("Type: " + env.getCollection().getClass().getName());
 				pr.println("Creation date: " + env.getCreationTime());

@@ -29,7 +29,7 @@ public class ClientHandler implements Callable<String> {
 
 				CommandPackage per = ClientReader.read(buffer);
 				System.out.println(host + ": " + per.getName());
-
+				
 				ByteBuffer outBuffer = ClientCommandExecutor.executeCommand(per, clientEnv);
 
 				ClientWriter.write(asyncChannel, outBuffer);
