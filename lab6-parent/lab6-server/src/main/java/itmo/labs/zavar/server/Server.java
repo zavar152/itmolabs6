@@ -15,6 +15,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import itmo.labs.zavar.commands.AddCommand;
 import itmo.labs.zavar.commands.AddIfMaxCommand;
 import itmo.labs.zavar.commands.AddIfMinCommand;
@@ -45,6 +48,8 @@ public class Server {
 	private static HashMap<String, Command> clientsCommandsMap = new HashMap<String, Command>();
 	private static HashMap<String, Command> internalCommandsMap = new HashMap<String, Command>();
 	
+	private static final Logger rootLogger = LogManager.getRootLogger();
+	
 	public static void main(String[] args) {
 		
 		Environment[] envs = prepareEnvironments(args);
@@ -58,14 +63,16 @@ public class Server {
 				asyncServerChannel.setOption(StandardSocketOptions.SO_RCVBUF, 4096*4);
 				asyncServerChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
 				asyncServerChannel.bind(new InetSocketAddress("127.0.0.1", 2222));
-				System.out.println("Waiting for connections ...");
+				rootLogger.info("Waiting for connections ...");
 				
 				taskExecutor.submit(() -> {
 					Scanner scan = new Scanner(System.in);
+					Logger internalClientLogger = LogManager.getLogger("internal");
 					while (true) {
 						try {
 							String input = scan.nextLine();
 							input = input.replaceAll(" +", " ").trim();
+							internalClientLogger.info(input);
 							String command[] = input.split(" ");
 
 							if (command[0].equals("exit")) {
@@ -82,20 +89,20 @@ public class Server {
 									internalEnv.getCommandsMap().get(command[0]).execute(ExecutionType.INTERNAL_CLIENT, internalEnv, Arrays.copyOfRange(command, 1, command.length), System.in, System.out);
 									internalEnv.getHistory().clearTempHistory();
 								} catch (CommandException e) {
-									System.err.println(e.getMessage());
+									rootLogger.error(e.getMessage());
 									internalEnv.getHistory().clearTempHistory();
 								}
 							} else {
-								System.err.println("Unknown command! Use help.");
+								rootLogger.error("Unknown command! Use help.");
 							}
 						} catch (Exception e) {
 							if (!scan.hasNextLine()) {
-								System.out.println("Inputing is closed! Server is closing...");
+								rootLogger.warn("Inputing is closed! Server is closing...");
 								taskExecutor.shutdownNow();
 								scan.close();
 								System.exit(0);
 							} else {
-								System.out.println("Unexcepted error!");
+								rootLogger.error("Unexcepted error!");
 							}
 						}
 					}
@@ -107,11 +114,11 @@ public class Server {
 
 					try {
 						final AsynchronousSocketChannel asyncChannel = asynchFuture.get();
-						ClientHandler worker = new ClientHandler(asyncChannel, clientEnv);
+						ClientHandler worker = new ClientHandler(asyncChannel, clientEnv, rootLogger);
 						taskExecutor.submit(worker);
 					} catch (InterruptedException | ExecutionException ex) {
-						System.err.println(ex);
-						System.err.println("\n Server is shutting down ...");
+						rootLogger.error(ex);
+						rootLogger.error("\n Server is shutting down ...");
 						taskExecutor.shutdown();
 						while (!taskExecutor.isTerminated());
 						break;
@@ -121,28 +128,28 @@ public class Server {
 					}
 				}
 			} else {
-				System.out.println("The asynchronous server-socket channel cannot be opened!");
+				rootLogger.error("The asynchronous server-socket channel cannot be opened!");
 			}
 		} catch (IOException ex) {
-			System.err.println(ex);
+			rootLogger.error(ex);
 		}
 	}
 	
 	private static Environment[] prepareEnvironments(String[] args) {
 		if (args.length != 1) {
 			args = new String[] { "" };
-			System.out.println("You should enter a path to .csv file! Collection will be empty!");
+			rootLogger.error("You should enter a path to .csv file! Collection will be empty!");
 		}
 
 		File file = new File(args[0]);
 
 		try {
-			System.out.println("Reading file...");
+			rootLogger.info("Reading file...");
 			if (CSVManager.read(file.toPath().toString(), stack, System.out)) {
-				System.out.println("Collection loaded!");
+				rootLogger.info("Collection loaded!");
 			}
 		} catch (Exception e) {
-			System.out.println("Unexcepted error during initialization. Server will be closed...");
+			rootLogger.error("Unexcepted error during initialization. Server will be closed...");
 			System.exit(-1);
 		}
 		
