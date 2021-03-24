@@ -87,6 +87,9 @@ public class Client {
 			} catch (UnknownHostException e) {
 				System.out.println("Unknown host");
 				System.exit(0);
+			} catch (Exception e) {
+				System.out.println("Error during connection");
+				System.exit(0);
 			}
 		}
 		System.out.println("Connected!");
@@ -145,7 +148,7 @@ public class Client {
 				} else {
 					System.err.println("Unknown command! Use help.");
 				}
-			} catch (SocketException e) {
+			} catch (SocketException | NegativeArraySizeException e) {
 				System.out.println("Server is unavailable!\nWaiting for connection...");
 				connected = false;
 				
@@ -155,6 +158,9 @@ public class Client {
 						connected = true;
 					} catch (ConnectException e1) {
 						Thread.sleep(2000);
+					} catch (Exception e1) {
+						System.out.println("Error during connection");
+						System.exit(0);
 					}
 				}
 				
