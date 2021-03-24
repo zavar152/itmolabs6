@@ -52,9 +52,9 @@ public class Server {
 	
 	public static void main(String[] args) {
 		
-		if(args.length != 3)
+		if(args.length != 2)
 		{
-			rootLogger.error("You should enter a path to .csv file and server address!");
+			rootLogger.error("You should enter a path to .csv file and server port!");
 			System.exit(0);
 		}
 		
@@ -68,7 +68,7 @@ public class Server {
 			if (asyncServerChannel.isOpen()) {
 				asyncServerChannel.setOption(StandardSocketOptions.SO_RCVBUF, 4096*4);
 				asyncServerChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
-				asyncServerChannel.bind(new InetSocketAddress(args[1], Integer.parseInt(args[2])));
+				asyncServerChannel.bind(new InetSocketAddress(Integer.parseInt(args[1])));
 				rootLogger.info("Waiting for connections ...");
 				
 				taskExecutor.submit(() -> {

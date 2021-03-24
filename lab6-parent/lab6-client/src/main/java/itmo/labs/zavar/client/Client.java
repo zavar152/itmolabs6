@@ -13,6 +13,7 @@ import java.io.Writer;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -83,6 +84,9 @@ public class Client {
 				connected = true;
 			} catch (ConnectException e1) {
 				Thread.sleep(2000);
+			} catch (UnknownHostException e) {
+				System.out.println("Unknown host");
+				System.exit(0);
 			}
 		}
 		System.out.println("Connected!");
