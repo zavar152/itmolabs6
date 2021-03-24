@@ -8,7 +8,7 @@
 		<version>0.0.1</version>
 	</parent>
 	<artifactId>lab6-client</artifactId>
-	<version>0.1.0</version>
+	<version>0.1.1</version>
 	<name>lab6-client</name>
 
 	<build>
